@@ -1112,7 +1112,57 @@ class BacktestRunner:
         if config.output_config.get('generate_plots', False):
             self._generate_plots(result, config)
 
+        # Generate summary report if configured
+        if config.output_config.get('generate_summary', False):
+            self._generate_summary_report(result, config)
+
         return result
+
+    def _generate_summary_report(
+        self,
+        result: BacktestResult,
+        config: TaskConfig,
+        config_path: str = None
+    ) -> str:
+        """
+        Generate summary report with year-by-year breakdown.
+
+        Args:
+            result: BacktestResult object
+            config: TaskConfig object
+            config_path: Path to config file used
+
+        Returns:
+            Path to saved report
+        """
+        from core.metrics import BacktestSummaryReport
+
+        if result.equity_curve is None:
+            return None
+
+        report = BacktestSummaryReport(
+            output_dir=config.output_config.get('result_dir', 'Reports')
+        )
+
+        report.add_from_backtest_result(
+            result=result,
+            task_config=config,
+            config_path=config_path
+        )
+
+        # Get output path from config
+        summary_path = config.output_config.get(
+            'summary_file',
+            'backtest_summary.csv'
+        )
+
+        # Determine format
+        if summary_path.endswith('.xlsx'):
+            fmt = 'excel'
+        else:
+            fmt = 'csv'
+
+        return report.save(summary_path, append=True, format=fmt)
 
     def _generate_plots(self, result: BacktestResult, config: TaskConfig) -> None:
         """Generate visualization plots."""

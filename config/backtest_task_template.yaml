@@ -188,6 +188,12 @@ output:
   export_excel: true
   generate_plots: true
 
+  # Summary Report Configuration
+  # Generates comprehensive CSV/Excel report with year-by-year breakdown
+  generate_summary: true
+  summary_file: Reports/backtest_summary.csv  # or .xlsx for Excel format
+  # Summary file uses append mode - multiple backtests can be compared in one file
+
   # Logging
   logging:
     enabled: true

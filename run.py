@@ -155,6 +155,19 @@ Examples:
         help='Generate plots'
     )
 
+    parser.add_argument(
+        '--summary',
+        action='store_true',
+        help='Generate summary report (CSV/Excel) with year-by-year breakdown'
+    )
+
+    parser.add_argument(
+        '--summary-file',
+        type=str,
+        default='Reports/backtest_summary.csv',
+        help='Summary report output path (default: Reports/backtest_summary.csv)'
+    )
+
     # Utility options
     parser.add_argument(
         '--list-modes',
@@ -305,6 +318,7 @@ def _register_all_factors():
 def run_from_config(args):
     """Run backtest from configuration file."""
     from core.engine import BacktestRunner
+    from core.metrics import BacktestSummaryReport
 
     config_path = args.config
     if not Path(config_path).exists():
@@ -328,6 +342,10 @@ def run_from_config(args):
     # Save results if requested
     if args.save:
         _save_results(result, args.output, Path(config_path).stem)
+
+    # Generate summary report if requested
+    if args.summary:
+        _generate_summary_report(result, args, config_path=config_path)
 
 
 def run_quick_mode(args):
@@ -427,6 +445,15 @@ def run_quick_mode(args):
     if args.save:
         _save_results(result, args.output, f"quick_{args.mode}")
 
+    # Generate summary report if requested
+    if args.summary:
+        _generate_summary_report(
+            result, args,
+            mode=args.mode,
+            assets=assets,
+            factors=factor_names
+        )
+
 
 def _print_result_summary(result):
     """Print result summary."""
@@ -497,6 +524,50 @@ def _save_results(result, output_dir: str, prefix: str):
                     metrics[k] = str(v)
             json.dump(metrics, f, indent=2)
         print(f"Saved metrics to: {metrics_path}")
+
+
+def _generate_summary_report(
+    result,
+    args,
+    config_path: str = None,
+    mode: str = None,
+    assets: list = None,
+    factors: list = None
+):
+    """Generate summary report with year-by-year breakdown."""
+    from core.metrics import BacktestSummaryReport
+
+    if result.equity_curve is None or (hasattr(result.equity_curve, 'empty') and result.equity_curve.empty):
+        print("Warning: No equity curve available for summary report")
+        return
+
+    report = BacktestSummaryReport()
+
+    # Add backtest result
+    report.add_backtest(
+        equity_curve=result.equity_curve,
+        mode=mode,
+        assets=assets,
+        factors=factors,
+        config_path=config_path
+    )
+
+    # Determine output path and format
+    output_path = args.summary_file
+    if output_path.endswith('.xlsx'):
+        fmt = 'excel'
+    else:
+        fmt = 'csv'
+
+    # Save report (append mode by default)
+    saved_path = report.save(output_path, append=True, format=fmt)
+    print(f"\nSummary report saved to: {saved_path}")
+
+    # Print summary stats
+    stats = report.get_summary_stats()
+    if stats:
+        print(f"  Total backtests in file: {stats.get('total_backtests', 0)}")
+        print(f"  Average Sharpe: {stats.get('avg_sharpe', 0):.3f}")
 
 
 if __name__ == '__main__':
