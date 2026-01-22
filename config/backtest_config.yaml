@@ -1,0 +1,94 @@
+# CTASectorTrendV2 - Backtest Configuration
+
+# =============================================================================
+# Backtest Parameters
+# =============================================================================
+backtest:
+  # Capital
+  initial_capital: 10000000  # 初始资金 (元)
+
+  # Trading Costs
+  transaction_cost: 0.001    # 交易成本 0.1%
+  slippage: 0.0002          # 滑点 0.02%
+  margin_rate: 0.1          # 保证金率 10%
+
+  # Position Limits
+  max_position_ratio: 0.3   # 单品种最大仓位 30%
+  max_leverage: 3.0         # 最大杠杆倍数
+
+  # Date Range (optional)
+  # start_date: 2020-01-01
+  # end_date: 2023-12-31
+
+# =============================================================================
+# Position Manager
+# =============================================================================
+position_manager:
+  target_volatility: 0.15   # 目标年化波动率 15%
+  lookback_window: 60       # 波动率计算窗口 60 天
+  max_leverage: 3.0         # 最大杠杆
+  min_leverage: 0.5         # 最小杠杆
+  rebalance_threshold: 0.1  # 再平衡阈值 10%
+
+# =============================================================================
+# Risk Manager
+# =============================================================================
+risk_manager:
+  # Drawdown Controls
+  max_drawdown: 0.15        # 最大回撤限制 15%
+  drawdown_warning: 0.10    # 回撤预警 10%
+
+  # Position Concentration
+  max_single_position: 0.20 # 单品种最大敞口 20%
+  max_sector_exposure: 0.40 # 单行业最大敞口 40%
+
+  # Stop Loss
+  stop_loss_threshold: 0.05 # 止损阈值 5%
+  trailing_stop: false      # 是否启用追踪止损
+
+  # Leverage Monitoring
+  leverage_warning: 2.5     # 杠杆预警
+  leverage_critical: 2.8    # 杠杆临界
+
+# =============================================================================
+# Execution
+# =============================================================================
+execution:
+  # Volatility Parity
+  use_volatility_parity: true
+  volatility_window: 20
+  volatility_method: stddev  # stddev or atr
+
+  # Dynamic Risk Management
+  max_allocation_pct: 0.10  # 单资产最大配置 10%
+  leverage_scaler: 2.0      # ATR 仓位放大系数
+  risk_budget_pct: 0.02     # 单笔风险预算 2%
+
+# =============================================================================
+# Data (V2 local paths - all data within project)
+# =============================================================================
+data:
+  # Raw data directory
+  raw_data_dir: ./data/raw
+
+  # Main data files (place your data files here)
+  market_data_path: ./data/raw/wind_style_adjusted_futures_contracts.parquet
+  industry_info_path: ./data/raw/活跃品种基本信息.xlsx
+
+  # Processed data
+  processed_data_dir: ./data/processed
+
+  # Cache directory
+  cache_dir: ./data/cache
+  correlation_cache_dir: ./data/cache/correlation
+
+# =============================================================================
+# Output
+# =============================================================================
+output:
+  result_dir: ./Result
+  log_dir: ./Result/logs
+  save_trades: true
+  save_positions: true
+  save_metrics: true
+  export_excel: true

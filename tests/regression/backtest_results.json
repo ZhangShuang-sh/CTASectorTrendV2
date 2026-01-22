@@ -1,0 +1,54 @@
+{
+  "test1": {
+    "test_name": "single_factor_single_asset_ts",
+    "v2": {
+      "sharpe": -0.35385598486341974,
+      "total_return": -1.0,
+      "max_drawdown": -1.0,
+      "num_trades": 435
+    },
+    "v1": null,
+    "match": null,
+    "status": "success"
+  },
+  "test2": {
+    "test_name": "multi_factor_single_asset_ts",
+    "v2": {
+      "sharpe": 1.1796135491969992,
+      "total_return": -1.0,
+      "max_drawdown": -1.0,
+      "num_trades": 1274
+    },
+    "status": "success"
+  },
+  "test3": {
+    "test_name": "single_factor_multi_asset_xs",
+    "v2": {
+      "sharpe": 4.512855224928961,
+      "total_return": 3.6336399819398197,
+      "max_drawdown": -0.08863873680454848,
+      "num_days": 464
+    },
+    "status": "success"
+  },
+  "test4": {
+    "test_name": "multi_factor_multi_asset_xs",
+    "v2": {
+      "sharpe": 4.512855224928961,
+      "total_return": 3.6336399819398197,
+      "max_drawdown": -0.08863873680454848,
+      "num_days": 464
+    },
+    "status": "success"
+  },
+  "test5": {
+    "test_name": "single_factor_single_pair",
+    "v2": {
+      "sharpe": 0.38108610149211475,
+      "total_return": 0.036825109599864625,
+      "max_drawdown": -0.022364300267609716,
+      "num_trades": 24
+    },
+    "status": "success"
+  }
+}

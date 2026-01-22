@@ -1,0 +1,291 @@
+# CTASectorTrendV2 - Backtest Task Configuration Template
+#
+# This file defines a single backtest task with all necessary parameters.
+# Copy this template and customize for your specific backtest needs.
+#
+# Supported Modes:
+# 1. single_factor_single_asset_ts  - 单因子-单资产-时序
+# 2. multi_factor_single_asset_ts   - 多因子-单资产-时序
+# 3. single_factor_multi_asset_xs   - 单因子-多资产-截面
+# 4. multi_factor_multi_asset_xs    - 多因子-多资产-截面
+# 5. single_factor_single_pair      - 单因子-单对资产-配对
+# 6. multi_factor_single_pair       - 多因子-单对资产-配对
+# 7. multi_factor_multi_asset_comprehensive - 多因子-多资产-综合
+
+# =============================================================================
+# Task Metadata
+# =============================================================================
+task:
+  name: "example_backtest"
+  description: "Example backtest task configuration"
+  version: "1.0"
+
+# =============================================================================
+# Backtest Mode
+# =============================================================================
+mode: multi_factor_single_asset_ts  # Choose from 7 modes above
+
+# =============================================================================
+# Date Range
+# =============================================================================
+date_range:
+  start: "2020-01-01"
+  end: "2023-12-31"
+  # Or use relative dates:
+  # lookback_years: 3
+
+# =============================================================================
+# Asset Configuration
+# =============================================================================
+# For single_asset modes: specify one asset
+# For multi_asset modes: specify list of assets or use filters
+
+assets:
+  # Option 1: Explicit list
+  symbols:
+    - RB    # 螺纹钢
+    - HC    # 热卷
+    - I     # 铁矿石
+
+  # Option 2: Filter by sector (for multi_asset modes)
+  # sectors:
+  #   - Wind煤焦钢矿
+  #   - Wind有色
+
+  # Option 3: Use all available assets
+  # use_all: true
+
+  # Liquidity filter (optional)
+  liquidity_filter:
+    enabled: true
+    method: strict  # strict, percentile, composite
+    min_volume: 10000
+    min_oi: 5000
+
+# =============================================================================
+# Pair Configuration (for pair trading modes)
+# =============================================================================
+pairs:
+  # Option 1: Explicit pairs
+  explicit:
+    - [RB, HC]    # 螺纹钢-热卷
+    - [I, J]      # 铁矿石-焦炭
+
+  # Option 2: Auto-select by correlation
+  # auto_select:
+  #   enabled: true
+  #   method: composite  # composite, correlation_only, cointegration
+  #   min_correlation: 0.6
+  #   max_pairs_per_sector: 3
+  #   same_sector_only: true
+
+# =============================================================================
+# Factor Configuration
+# =============================================================================
+factors:
+  # Time Series Factors
+  time_series:
+    - name: HurstExponent
+      enabled: true
+      weight: 1.0  # Relative weight within time_series category
+      params:
+        window: 100
+        scale: 2.0
+
+    - name: AMIHUDFactor
+      enabled: true
+      weight: 1.0
+      params:
+        short_period: 2
+        long_period: 8
+
+    - name: AmivestFactor
+      enabled: false  # Disabled
+      weight: 1.0
+      params:
+        short_period: 12
+        long_period: 32
+
+  # Cross-Sectional Factors
+  cross_sectional:
+    - name: MomentumRank
+      enabled: false
+      weight: 1.0
+      params:
+        lookback: 20
+
+  # Pair Trading Factors
+  pair_trading:
+    - name: CopulaPairFactor
+      enabled: true
+      weight: 1.0
+      params:
+        window: 60
+        correlation_window: 60
+        min_correlation: 0.5
+        entry_threshold: 0.2
+        scheme: A  # A, B, C, D
+
+# =============================================================================
+# Factor Type Weights (for multi-factor modes)
+# =============================================================================
+factor_type_weights:
+  time_series: 0.50
+  cross_sectional: 0.35
+  pair_trading: 0.15
+
+# =============================================================================
+# Signal Normalization
+# =============================================================================
+normalization:
+  method: zscore_clip  # zscore_clip, minmax, rank, none
+  zscore_clip_std: 3.0
+  minmax_range: [-1, 1]
+
+# =============================================================================
+# Position Management
+# =============================================================================
+position:
+  sizing_method: volatility_target  # equal_weight, volatility_target, risk_parity
+  target_volatility: 0.15  # 15% annualized
+  max_leverage: 3.0
+  max_single_position: 0.20  # 20% max per asset
+  max_sector_exposure: 0.40  # 40% max per sector
+  rebalance_frequency: daily  # daily, weekly, monthly
+
+# =============================================================================
+# Risk Management
+# =============================================================================
+risk:
+  enabled: true
+  max_drawdown: 0.15  # 15% max drawdown
+  stop_loss_threshold: 0.05  # 5% stop loss per position
+  var_limit: 0.02  # 2% daily VaR limit
+  concentration_limit: 0.25  # 25% max concentration
+
+# =============================================================================
+# Execution Parameters
+# =============================================================================
+execution:
+  initial_capital: 10000000  # 1000万
+  transaction_cost: 0.001    # 0.1%
+  slippage: 0.0002          # 0.02%
+  margin_rate: 0.10         # 10%
+
+  # Liquidation protection
+  liquidation_protection: true
+  liquidation_threshold: 0.05  # 5%
+
+# =============================================================================
+# Output Configuration
+# =============================================================================
+output:
+  result_dir: ./Result
+  save_trades: true
+  save_positions: true
+  save_signals: true
+  save_metrics: true
+  export_excel: true
+  generate_plots: true
+
+  # Logging
+  logging:
+    enabled: true
+    level: INFO  # DEBUG, INFO, WARNING, ERROR
+    log_factor_values: true
+    log_signals: true
+    log_positions: true
+    log_trades: true
+    log_pnl: true
+
+# =============================================================================
+# Example Configurations for Each Mode
+# =============================================================================
+#
+# Mode 1: single_factor_single_asset_ts
+# --------------------------------------
+# mode: single_factor_single_asset_ts
+# assets:
+#   symbols: [RB]
+# factors:
+#   time_series:
+#     - name: HurstExponent
+#       enabled: true
+#
+# Mode 2: multi_factor_single_asset_ts
+# -------------------------------------
+# mode: multi_factor_single_asset_ts
+# assets:
+#   symbols: [RB]
+# factors:
+#   time_series:
+#     - name: HurstExponent
+#       enabled: true
+#     - name: AMIHUDFactor
+#       enabled: true
+#
+# Mode 3: single_factor_multi_asset_xs
+# -------------------------------------
+# mode: single_factor_multi_asset_xs
+# assets:
+#   sectors: [Wind煤焦钢矿]
+# factors:
+#   cross_sectional:
+#     - name: MomentumRank
+#       enabled: true
+#
+# Mode 4: multi_factor_multi_asset_xs
+# ------------------------------------
+# mode: multi_factor_multi_asset_xs
+# assets:
+#   use_all: true
+# factors:
+#   cross_sectional:
+#     - name: MomentumRank
+#       enabled: true
+#     - name: CSMomentum
+#       enabled: true
+#
+# Mode 5: single_factor_single_pair
+# ----------------------------------
+# mode: single_factor_single_pair
+# pairs:
+#   explicit:
+#     - [RB, HC]
+# factors:
+#   pair_trading:
+#     - name: CopulaPairFactor
+#       enabled: true
+#
+# Mode 6: multi_factor_single_pair
+# ---------------------------------
+# mode: multi_factor_single_pair
+# pairs:
+#   explicit:
+#     - [RB, HC]
+# factors:
+#   pair_trading:
+#     - name: CopulaPairFactor
+#       enabled: true
+#     - name: KalmanFilterPair
+#       enabled: true
+#
+# Mode 7: multi_factor_multi_asset_comprehensive
+# -----------------------------------------------
+# mode: multi_factor_multi_asset_comprehensive
+# assets:
+#   sectors: [Wind煤焦钢矿, Wind有色]
+# pairs:
+#   auto_select:
+#     enabled: true
+#     min_correlation: 0.6
+# factors:
+#   time_series:
+#     - name: HurstExponent
+#       enabled: true
+#   cross_sectional:
+#     - name: MomentumRank
+#       enabled: true
+#   pair_trading:
+#     - name: CopulaPairFactor
+#       enabled: true

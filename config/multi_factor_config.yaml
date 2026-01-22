@@ -1,0 +1,188 @@
+# CTASectorTrendV2 - Multi-Factor Configuration
+#
+# 4-Layer Configuration Hierarchy:
+# L1: Factor Type (factor_type_weights)
+# L2: Application Scope (common / idiosyncratic)
+# L3: Logical Category (trend, volatility, liquidity, etc.)
+# L4: Sub-category (specific factors)
+#
+# Parameter Priority: Asset > Sector > Common
+
+# =============================================================================
+# L1: Factor Type Weights
+# =============================================================================
+factor_type_weights:
+  time_series: 0.50        # 单资产时序因子权重
+  cross_sectional: 0.35    # 截面因子权重
+  pair_trading: 0.15       # 配对因子权重
+
+# =============================================================================
+# L2: Common Factors (适用于所有资产)
+# =============================================================================
+common:
+  # -------------------------
+  # Time Series Factors
+  # -------------------------
+  time_series:
+    # L3: Trend Category
+    - name: HurstExponent
+      class: core.factors.time_series.trend.HurstExponent
+      category: trend
+      default_params:
+        window: 100
+        scale: 2.0
+        return_raw: false
+
+    - name: EMDTrend
+      class: core.factors.time_series.trend.EMDTrend
+      category: trend
+      default_params:
+        window: 60
+        noise_imfs: 2
+        use_simple: true
+
+    # L3: Liquidity Category
+    - name: AMIHUDFactor
+      class: core.factors.time_series.liquidity.AMIHUDFactor
+      category: liquidity
+      default_params:
+        short_period: 2
+        long_period: 8
+
+    - name: AmivestFactor
+      class: core.factors.time_series.liquidity.AmivestFactor
+      category: liquidity
+      default_params:
+        short_period: 12
+        long_period: 32
+
+  # -------------------------
+  # Cross-Sectional Factors
+  # -------------------------
+  cross_sectional: []
+
+  # -------------------------
+  # Pair Trading Factors
+  # -------------------------
+  pair_trading:
+    - name: CopulaPairFactor
+      class: core.factors.pair_trading.copula.CopulaPairFactor
+      category: copula
+      default_params:
+        window: 60
+        correlation_window: 60
+        min_correlation: 0.5
+        entry_threshold: 0.2
+
+# =============================================================================
+# L2: Idiosyncratic Factors (特定资产/行业)
+# =============================================================================
+idiosyncratic:
+  # 按行业覆盖
+  by_sector:
+    Wind煤焦钢矿:
+      time_series:
+        - name: HurstExponent
+          params:
+            window: 120  # 煤焦钢矿行业使用更长窗口
+            scale: 1.5
+      pair_trading:
+        - name: CopulaPairFactor
+          params:
+            min_correlation: 0.6  # 更高相关性要求
+
+    Wind有色:
+      time_series:
+        - name: HurstExponent
+          params:
+            window: 80
+
+  # 按资产覆盖
+  by_asset:
+    RB:  # 螺纹钢
+      time_series:
+        - name: AMIHUDFactor
+          params:
+            short_period: 3
+            long_period: 10
+
+    I:   # 铁矿石
+      time_series:
+        - name: AMIHUDFactor
+          params:
+            short_period: 2
+            long_period: 6
+
+# =============================================================================
+# Backtest Configuration
+# =============================================================================
+backtest:
+  initial_capital: 10000000
+  transaction_cost: 0.001
+  slippage: 0.0002
+  margin_rate: 0.1
+  max_position_ratio: 0.3
+  max_leverage: 3.0
+
+# =============================================================================
+# Position Manager Configuration
+# =============================================================================
+position_manager:
+  target_volatility: 0.15
+  lookback_window: 60
+  max_leverage: 3.0
+  min_leverage: 0.5
+
+# =============================================================================
+# Risk Manager Configuration
+# =============================================================================
+risk_manager:
+  max_drawdown: 0.15
+  max_single_position: 0.20
+  max_sector_exposure: 0.40
+  stop_loss_threshold: 0.05
+
+# =============================================================================
+# Fixed Pairs (配对定义)
+# =============================================================================
+fixed_pairs:
+  Wind煤焦钢矿:
+    - [RB, HC]     # 螺纹钢 - 热卷
+    - [I, J]       # 铁矿石 - 焦炭
+    - [J, JM]      # 焦炭 - 焦煤
+
+  Wind有色:
+    - [CU, AL]     # 铜 - 铝
+    - [ZN, PB]     # 锌 - 铅
+    - [NI, SN]     # 镍 - 锡
+
+  Wind贵金属:
+    - [AU, AG]     # 黄金 - 白银
+
+  Wind能源:
+    - [SC, FU]     # 原油 - 燃油
+    - [SC, BU]     # 原油 - 沥青
+
+  Wind油脂油料:
+    - [Y, P]       # 豆油 - 棕榈油
+    - [M, RM]      # 豆粕 - 菜粕
+    - [OI, Y]      # 菜油 - 豆油
+
+  Wind化工:
+    - [TA, EG]     # PTA - 乙二醇
+    - [PP, L]      # 聚丙烯 - 塑料
+    - [MA, TA]     # 甲醇 - PTA
+
+# =============================================================================
+# Logging Configuration
+# =============================================================================
+logging:
+  enabled: true
+  output_dir: ./Result/logs
+  log_levels:
+    raw_factor_values: true
+    signals: true
+    positions: true
+    trades: true
+    pnl: true
+    ic_metrics: true

@@ -1,0 +1,517 @@
+# CTASectorTrendV2 - Factor Registry
+#
+# Comprehensive registry of all implemented factors
+# Used for dynamic factor instantiation via FactorRegistry
+#
+# Total: 34 Factor Implementations
+#
+# =============================================================================
+# Source Report Field (source_report)
+# =============================================================================
+# Each factor now includes a source_report field pointing to the reference
+# document in Reports/library/. Values:
+#   - Relative path from project root (e.g., "Reports/library/时序因子/xxx.pdf")
+#   - null if no corresponding report exists
+#
+# Report Categories:
+#   - 时序因子/: Time series factor reports
+#   - 截面因子/: Cross-sectional factor reports
+#   - 配对因子/: Pair trading factor reports
+# =============================================================================
+
+factors:
+  # =============================================================================
+  # Time Series Factors (15 implementations)
+  # =============================================================================
+  time_series:
+    # --- Trend Category ---
+    HurstExponent:
+      class: core.factors.time_series.trend.HurstExponent
+      description: "Hurst exponent for trend/mean-reversion detection"
+      category: trend
+      source_report: null  # 经典统计学方法，无特定报告
+      default_normalization: zscore_clip
+      default_params:
+        window: 100
+        scale: 2.0
+        return_raw: false
+
+    EMDTrend:
+      class: core.factors.time_series.trend.EMDTrend
+      description: "Empirical Mode Decomposition trend efficiency"
+      category: trend
+      source_report: "Reports/library/时序因子/CTA研究系列之十九：带反转的加强版EMDT交易策略.pdf"
+      default_normalization: none
+      default_params:
+        window: 60
+        noise_imfs: 2
+
+    # --- Liquidity Category ---
+    AMIHUDFactor:
+      class: core.factors.time_series.liquidity.AMIHUDFactor
+      description: "Amihud illiquidity momentum factor"
+      category: liquidity
+      source_report: "Reports/library/时序因子/AMIHUD因子.docx"
+      default_normalization: zscore_clip
+      default_params:
+        short_period: 2
+        long_period: 8
+
+    AmivestFactor:
+      class: core.factors.time_series.liquidity.AmivestFactor
+      description: "Amivest liquidity ratio factor"
+      category: liquidity
+      source_report: "Reports/library/时序因子/Amivest因子.docx"
+      default_normalization: zscore_clip
+      default_params:
+        short_period: 12
+        long_period: 32
+
+    # --- Volatility Category ---
+    KalmanFilterDeviation:
+      class: core.factors.time_series.volatility.KalmanFilterDeviation
+      description: "Kalman filter price deviation (mean-reversion)"
+      category: volatility
+      source_report: null  # 通用卡尔曼滤波方法
+      default_normalization: zscore_clip
+      default_params:
+        window: 60
+        process_noise: 0.00001
+        measurement_noise: 0.001
+        zscore_window: 20
+
+    KalmanTrendFollower:
+      class: core.factors.time_series.volatility.KalmanTrendFollower
+      description: "Kalman filter trend following signal"
+      category: volatility
+      source_report: null  # 通用卡尔曼滤波方法
+      default_normalization: zscore_clip
+      default_params:
+        window: 60
+        process_noise: 0.00001
+        measurement_noise: 0.001
+        zscore_window: 20
+
+    DUVOLFactor:
+      class: core.factors.time_series.volatility_advanced.DUVOLFactor
+      description: "Downside-Upside Volatility ratio (crash risk)"
+      category: volatility
+      source_report: "Reports/library/时序因子/DUVOL因子.docx"
+      default_normalization: zscore_clip
+      default_params:
+        period: 150
+        demean: false
+
+    RunsTestFactor:
+      class: core.factors.time_series.volatility_advanced.RunsTestFactor
+      description: "Runs test for randomness detection"
+      category: statistical
+      source_report: "Reports/library/时序因子/随机因子.docx"
+      default_normalization: zscore_clip
+      default_params:
+        period: 20
+        z_threshold: 2.0
+
+    # --- Investor Behavior Category ---
+    InvestorBehaviorTrendFactor:
+      class: core.factors.time_series.investor_behavior.InvestorBehaviorTrendFactor
+      description: "Unified investor behavior momentum/reversal factor"
+      category: investor_behavior
+      source_report: "Reports/library/时序因子/【中信期货金融工程】期货多因子系列之九：基于投资者行为的趋势因子——专题报告20241024.pdf"
+      default_normalization: zscore_clip
+      default_params:
+        mom_w: 0.0167
+        revs_w: 3
+        revs_mean_w: 10
+        revs_thr: 0.8
+        mean_w: 10
+        std_w: 5
+        weight: 0.7
+
+    InvestorBehaviorMomentum:
+      class: core.factors.time_series.investor_behavior.InvestorBehaviorMomentum
+      description: "Short-term momentum component of investor behavior"
+      category: investor_behavior
+      source_report: "Reports/library/时序因子/【中信期货金融工程】期货多因子系列之九：基于投资者行为的趋势因子——专题报告20241024.pdf"
+      default_normalization: zscore_clip
+      default_params:
+        mom_w: 0.0167
+
+    InvestorBehaviorReversal:
+      class: core.factors.time_series.investor_behavior.InvestorBehaviorReversal
+      description: "Long-term reversal component of investor behavior"
+      category: investor_behavior
+      source_report: "Reports/library/时序因子/【中信期货金融工程】期货多因子系列之九：基于投资者行为的趋势因子——专题报告20241024.pdf"
+      default_normalization: zscore_clip
+      default_params:
+        revs_w: 3
+        revs_mean_w: 10
+
+    # --- MA Crossover Category ---
+    MACrossoverInnovationFactor:
+      class: core.factors.time_series.ma_crossover.MACrossoverInnovationFactor
+      description: "MA crossover with floating take-profit"
+      category: ma_crossover
+      source_report: "Reports/library/时序因子/CTA研究系列之二十七：均线交叉策略的另类创新研究.pdf"
+      default_normalization: none
+      default_params:
+        fast_period: 10
+        slow_period: 20
+        ma_type: "WMA"
+
+    # --- Price-Volume Pattern Category ---
+    PriceVolumePatternFactor:
+      class: core.factors.time_series.price_volume_pattern.PriceVolumePatternFactor
+      description: "DTW-based price-volume pattern matching"
+      category: price_volume
+      source_report: "Reports/library/时序因子/CTA研究系列之二十五：价量模式匹配股指期货交易策略.pdf"
+      default_normalization: none
+      default_params:
+        pattern_length: 11
+        top_k: 5
+        min_history: 50
+        use_volume: true
+
+    # --- Statistical Category ---
+    SLMTimingFactor:
+      class: core.factors.time_series.slm_timing.SLMTimingFactor
+      description: "Statistical Language Model timing (N-gram)"
+      category: statistical
+      source_report: "Reports/library/时序因子/CTA研究系列之十三：基于统计语言模型（SLM）的择时交易研究.pdf"
+      default_normalization: none
+      default_params:
+        model_order: 6
+        min_corpus_size: 200
+        laplace_smoothing: true
+
+    # --- VCRR Time Series (defined in cross_sectional/vcrr.py but TS type) ---
+    VCRRTimeSeriesFactor:
+      class: core.factors.cross_sectional.vcrr.VCRRTimeSeriesFactor
+      description: "VWAP-Close ratio time-series version"
+      category: price_volume
+      source_report: "Reports/library/截面因子/VCRR因子.docx"
+      default_normalization: zscore_clip
+      default_params:
+        window: 20
+
+  # =============================================================================
+  # Cross-Sectional Factors (15 implementations)
+  # =============================================================================
+  cross_sectional:
+    # --- Momentum Category ---
+    MomentumRank:
+      class: core.factors.cross_sectional.momentum.MomentumRank
+      description: "Cross-sectional momentum ranking"
+      category: momentum
+      source_report: null  # 经典动量因子
+      default_normalization: rank
+      default_params:
+        window: 20
+        vol_filter_window: 20
+        vol_filter_threshold: null
+
+    TermStructure:
+      class: core.factors.cross_sectional.momentum.TermStructure
+      description: "Term structure slope factor"
+      category: momentum
+      source_report: null  # 期限结构经典因子
+      default_normalization: rank
+      default_params:
+        window: 60
+        term_window: 240
+        contract_diff: 0
+
+    CrossSectionalMomentumFactor:
+      class: core.factors.cross_sectional.momentum_citic.CrossSectionalMomentumFactor
+      description: "CITIC cross-sectional momentum"
+      category: momentum
+      source_report: "Reports/library/截面因子/【中信期货金融工程】CTA风格因子手册（二）：动量类因子——专题报告20241106.pdf"
+      default_normalization: rank
+      default_params:
+        window: 240
+        direction: "POSITIVE"
+
+    TimeSeriesMomentumFactor:
+      class: core.factors.cross_sectional.momentum_citic.TimeSeriesMomentumFactor
+      description: "CITIC time-series momentum"
+      category: momentum
+      source_report: "Reports/library/截面因子/【中信期货金融工程】CTA风格因子手册（二）：动量类因子——专题报告20241106.pdf"
+      default_normalization: rank
+      default_params:
+        window: 240
+        direction: "POSITIVE"
+
+    CompositeMomentumFactor:
+      class: core.factors.cross_sectional.momentum_citic.CompositeMomentumFactor
+      description: "CITIC composite momentum (CS + TS)"
+      category: momentum
+      source_report: "Reports/library/截面因子/【中信期货金融工程】CTA风格因子手册（二）：动量类因子——专题报告20241106.pdf"
+      default_normalization: rank
+      default_params:
+        window: 240
+        direction: "POSITIVE"
+
+    BIASFactor:
+      class: core.factors.cross_sectional.momentum_citic.BIASFactor
+      description: "Price deviation from moving average (BIAS)"
+      category: momentum
+      source_report: "Reports/library/截面因子/【中信期货金融工程】CTA风格因子手册（二）：动量类因子——专题报告20241106.pdf"
+      default_normalization: rank
+      default_params:
+        window: 20
+        direction: "POSITIVE"
+
+    TrendStrengthFactor:
+      class: core.factors.cross_sectional.momentum_citic.TrendStrengthFactor
+      description: "Trend strength measurement"
+      category: momentum
+      source_report: "Reports/library/截面因子/【中信期货金融工程】CTA风格因子手册（二）：动量类因子——专题报告20241106.pdf"
+      default_normalization: rank
+      default_params:
+        window: 20
+        direction: "POSITIVE"
+
+    # --- Price-Volume Category ---
+    VolatilityFactor:
+      class: core.factors.cross_sectional.price_volume.VolatilityFactor
+      description: "Return volatility (cross-sectional)"
+      category: volatility
+      source_report: "Reports/library/截面因子/【中信期货金融工程】CTA风格因子手册（一）：量价类因子——专题报告20241016.pdf"
+      default_normalization: rank
+      default_params:
+        window: 10
+        direction: "POSITIVE"
+
+    CVFactor:
+      class: core.factors.cross_sectional.price_volume.CVFactor
+      description: "Coefficient of Variation"
+      category: volatility
+      source_report: "Reports/library/截面因子/【中信期货金融工程】CTA风格因子手册（一）：量价类因子——专题报告20241016.pdf"
+      default_normalization: rank
+      default_params:
+        window: 20
+        direction: "NEGATIVE"
+
+    SkewnessFactor:
+      class: core.factors.cross_sectional.price_volume.SkewnessFactor
+      description: "Return distribution skewness"
+      category: statistical
+      source_report: "Reports/library/截面因子/【中信期货金融工程】CTA风格因子手册（一）：量价类因子——专题报告20241016.pdf"
+      default_normalization: rank
+      default_params:
+        window: 20
+        direction: "NEGATIVE"
+
+    KurtosisFactor:
+      class: core.factors.cross_sectional.price_volume.KurtosisFactor
+      description: "Return distribution kurtosis (fat tails)"
+      category: statistical
+      source_report: "Reports/library/截面因子/【中信期货金融工程】CTA风格因子手册（一）：量价类因子——专题报告20241016.pdf"
+      default_normalization: rank
+      default_params:
+        window: 20
+        direction: "POSITIVE"
+
+    AmplitudeFactor:
+      class: core.factors.cross_sectional.price_volume.AmplitudeFactor
+      description: "Price amplitude (high-low range)"
+      category: price_volume
+      source_report: "Reports/library/截面因子/【中信期货金融工程】CTA风格因子手册（一）：量价类因子——专题报告20241016.pdf"
+      default_normalization: rank
+      default_params:
+        window: 20
+        direction: "POSITIVE"
+
+    LiquidityFactor:
+      class: core.factors.cross_sectional.price_volume.LiquidityFactor
+      description: "Volume/volatility liquidity ratio"
+      category: liquidity
+      source_report: "Reports/library/截面因子/【中信期货金融工程】CTA风格因子手册（一）：量价类因子——专题报告20241016.pdf"
+      default_normalization: rank
+      default_params:
+        window: 20
+        direction: "POSITIVE"
+
+    # --- VCRR Category ---
+    VCRRFactor:
+      class: core.factors.cross_sectional.vcrr.VCRRFactor
+      description: "VWAP-Close relative ranking (big money pressure)"
+      category: price_volume
+      source_report: "Reports/library/截面因子/VCRR因子.docx"
+      default_normalization: rank
+      default_params:
+        window: 20
+
+    # --- Fundamental Category ---
+    MemberHoldings:
+      class: core.factors.cross_sectional.fundamental.MemberHoldings
+      description: "Exchange member net holdings signal"
+      category: fundamental
+      source_report: null  # 交易所公开数据
+      default_normalization: zscore_clip
+      default_params:
+        weight_by_accuracy: false
+
+  # =============================================================================
+  # Pair Trading Factors (5 implementations)
+  # =============================================================================
+  pair_trading:
+    CopulaPairFactor:
+      class: core.factors.pair_trading.copula.CopulaPairFactor
+      description: "Copula conditional probability pair trading"
+      category: copula
+      source_report: "Reports/library/配对因子/【中信期货金融工程】配对交易专题（三）：使用Copula函数套利的发散性思考——专题报告20240714.pdf"
+      default_normalization: none
+      default_params:
+        window: 60
+        correlation_window: 60
+        min_correlation: 0.5
+        entry_threshold: 0.2
+
+    TrendFollowingPairFactor:
+      class: core.factors.pair_trading.trend_following.TrendFollowingPairFactor
+      description: "Trend following on price ratio"
+      category: trend
+      source_report: null  # 通用趋势跟踪方法
+      default_normalization: none
+      default_params:
+        window: 60
+        fast_period: 10
+        slow_period: 30
+        min_correlation: 0.3
+
+    KalmanFilterPairFactor:
+      class: core.factors.pair_trading.kalman_filter.KalmanFilterPairFactor
+      description: "Kalman filter dynamic hedge ratio pair trading"
+      category: kalman
+      source_report: "Reports/library/配对因子/【中信期货金融工程】配对交易专题（二）：卡尔曼滤波在价差套利中的应用（基于Backtrader回测框架）——专题报告20240129.pdf"
+      default_normalization: none
+      default_params:
+        window: 60
+        delta: 0.0001
+        Ve: 0.001
+        zscore_window: 20
+        entry_threshold: 2.0
+        exit_threshold: 0.5
+
+    StyleMomentumPairFactor:
+      class: core.factors.pair_trading.style_momentum.StyleMomentumPairFactor
+      description: "Pure momentum style pair trading"
+      category: momentum
+      source_report: "Reports/library/配对因子/CTA研究系列之二十二：风格动量下的股指期货跨品种套利策略.pdf"
+      default_normalization: none
+      default_params:
+        window: 20
+        lookback: 1
+        min_history: 2
+        signal_strength: 1.0
+        use_return_magnitude: false
+
+    EnhancedStyleMomentumPairFactor:
+      class: core.factors.pair_trading.style_momentum.EnhancedStyleMomentumPairFactor
+      description: "Enhanced momentum with vol adjustment and trend confirm"
+      category: momentum
+      source_report: "Reports/library/配对因子/CTA研究系列之二十二：风格动量下的股指期货跨品种套利策略.pdf"
+      default_normalization: none
+      default_params:
+        window: 20
+        lookback: 1
+        vol_adjust: true
+        vol_window: 20
+        trend_confirm: false
+        trend_window: 5
+
+# =============================================================================
+# Category Definitions (L3 in 4-layer hierarchy)
+# =============================================================================
+categories:
+  trend:
+    description: "趋势类因子 - 识别价格趋势持续性"
+    factors: [HurstExponent, EMDTrend, TrendFollowingPairFactor]
+
+  volatility:
+    description: "波动率类因子 - 衡量价格波动特征"
+    factors: [KalmanFilterDeviation, KalmanTrendFollower, DUVOLFactor, VolatilityFactor, CVFactor]
+
+  liquidity:
+    description: "流动性类因子 - 衡量市场流动性状态"
+    factors: [AMIHUDFactor, AmivestFactor, LiquidityFactor]
+
+  momentum:
+    description: "动量类因子 - 捕捉价格动量效应"
+    factors: [MomentumRank, CrossSectionalMomentumFactor, TimeSeriesMomentumFactor, CompositeMomentumFactor, BIASFactor, TrendStrengthFactor, StyleMomentumPairFactor, EnhancedStyleMomentumPairFactor]
+
+  investor_behavior:
+    description: "投资者行为类因子 - 基于行为金融学"
+    factors: [InvestorBehaviorTrendFactor, InvestorBehaviorMomentum, InvestorBehaviorReversal]
+
+  ma_crossover:
+    description: "均线交叉类因子 - 技术分析信号"
+    factors: [MACrossoverInnovationFactor]
+
+  price_volume:
+    description: "量价类因子 - 价量关系分析"
+    factors: [PriceVolumePatternFactor, VCRRFactor, VCRRTimeSeriesFactor, AmplitudeFactor]
+
+  statistical:
+    description: "统计类因子 - 统计检验和分布特征"
+    factors: [RunsTestFactor, SLMTimingFactor, SkewnessFactor, KurtosisFactor]
+
+  copula:
+    description: "Copula配对因子 - 基于概率分布配对"
+    factors: [CopulaPairFactor]
+
+  kalman:
+    description: "卡尔曼滤波因子 - 动态参数估计"
+    factors: [KalmanFilterPairFactor]
+
+  fundamental:
+    description: "基本面因子 - 持仓等基本面数据"
+    factors: [MemberHoldings]
+
+# =============================================================================
+# Source Report Summary
+# =============================================================================
+# Mapping between factors and their source reports for quick reference.
+#
+# Reports/library/时序因子/:
+#   - AMIHUD因子.docx → AMIHUDFactor
+#   - Amivest因子.docx → AmivestFactor
+#   - DUVOL因子.docx → DUVOLFactor
+#   - 随机因子.docx → RunsTestFactor
+#   - CTA研究系列之十三 (SLM) → SLMTimingFactor
+#   - CTA研究系列之十九 (EMDT) → EMDTrend
+#   - CTA研究系列之二十五 (价量模式) → PriceVolumePatternFactor
+#   - CTA研究系列之二十七 (均线交叉) → MACrossoverInnovationFactor
+#   - 中信期货-投资者行为趋势因子 → InvestorBehaviorTrendFactor, InvestorBehaviorMomentum, InvestorBehaviorReversal
+#
+# Reports/library/截面因子/:
+#   - VCRR因子.docx → VCRRFactor, VCRRTimeSeriesFactor
+#   - 中信期货-CTA风格因子手册（一）量价类 → VolatilityFactor, CVFactor, SkewnessFactor, KurtosisFactor, AmplitudeFactor, LiquidityFactor
+#   - 中信期货-CTA风格因子手册（二）动量类 → CrossSectionalMomentumFactor, TimeSeriesMomentumFactor, CompositeMomentumFactor, BIASFactor, TrendStrengthFactor
+#
+# Reports/library/配对因子/:
+#   - 中信期货-配对交易专题（二）卡尔曼滤波 → KalmanFilterPairFactor
+#   - 中信期货-配对交易专题（三）Copula → CopulaPairFactor
+#   - CTA研究系列之二十二 (风格动量) → StyleMomentumPairFactor, EnhancedStyleMomentumPairFactor
+#
+# Factors without specific reports (null):
+#   - HurstExponent: 经典统计学方法
+#   - KalmanFilterDeviation, KalmanTrendFollower: 通用卡尔曼滤波
+#   - MomentumRank: 经典动量因子
+#   - TermStructure: 期限结构经典因子
+#   - MemberHoldings: 交易所公开数据
+#   - TrendFollowingPairFactor: 通用趋势跟踪方法
+# =============================================================================
+
+# =============================================================================
+# Statistics
+# =============================================================================
+statistics:
+  total_factors: 34
+  time_series_count: 15
+  cross_sectional_count: 14
+  pair_trading_count: 5
+  categories_count: 11
+  factors_with_reports: 26
+  factors_without_reports: 8
