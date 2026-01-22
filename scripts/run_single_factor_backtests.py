@@ -37,8 +37,10 @@ sys.path.insert(0, str(project_root))
 START_DATE = "2018-01-01"
 END_DATE = "2024-12-31"
 
-# Representative assets for time-series backtests
-TS_TEST_ASSETS = ["RB", "HC", "I", "J", "JM", "CU", "AL", "ZN", "AG", "AU"]
+# Assets for time-series backtests
+# Set to "ALL" to use all available assets from data, or specify a list
+TS_TEST_ASSETS = "ALL"  # Will be populated from data
+# TS_TEST_ASSETS = ["RB", "HC", "I", "J", "JM", "CU", "AL", "ZN", "AG", "AU"]  # Or specify subset
 
 # Representative pairs for pair trading backtests
 PAIR_TEST_PAIRS = [
@@ -149,6 +151,18 @@ class SimpleDataLoader:
         asset_df = asset_df.rename(columns=col_map)
 
         return asset_df.sort_index()
+
+    def get_all_assets(self) -> List[str]:
+        """Get list of all available assets in the data."""
+        df = self.load_data()
+        if df is None:
+            return []
+
+        if 'PRODUCT_CODE' in df.columns:
+            return sorted(df['PRODUCT_CODE'].unique().tolist())
+        elif 'product' in df.columns:
+            return sorted(df['product'].unique().tolist())
+        return []
 
     def get_multi_asset_data(
         self,
@@ -654,6 +668,15 @@ class SingleFactorBacktestRunner:
         print(f"Date Range: {START_DATE} to {END_DATE}")
         print("=" * 60)
 
+        # Resolve asset list
+        global TS_TEST_ASSETS
+        if TS_TEST_ASSETS == "ALL":
+            ts_assets = self.data_loader.get_all_assets()
+            print(f"Using ALL {len(ts_assets)} available assets")
+        else:
+            ts_assets = TS_TEST_ASSETS
+            print(f"Using {len(ts_assets)} specified assets")
+
         # Import summary report
         from core.metrics import BacktestSummaryReport
         report = BacktestSummaryReport(output_dir=str(self.output_dir))
@@ -662,12 +685,14 @@ class SingleFactorBacktestRunner:
         # 1. Time Series Factor Backtests
         # =================================================================
         print("\n[1/3] Running Time Series Factor Backtests...")
+        print(f"Factors: {len(TS_FACTORS)}, Assets: {len(ts_assets)}")
+        print(f"Total backtests: {len(TS_FACTORS) * len(ts_assets)}")
         print("-" * 60)
 
         for factor_info in TS_FACTORS:
             print(f"\nFactor: {factor_info['name']}")
 
-            for asset in TS_TEST_ASSETS:
+            for asset in ts_assets:
                 data = self.data_loader.get_asset_data(asset, START_DATE, END_DATE)
                 if data is None or len(data) < 200:
                     print(f"  Skipping {asset}: insufficient data")
