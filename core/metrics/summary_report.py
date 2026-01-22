@@ -308,6 +308,7 @@ class BacktestSummaryReport:
 
     # Column definitions
     COLUMNS = [
+        'Backtest_Time',       # 回测执行时间
         'Dimension',           # 时序/截面/配对
         'Factor_Layer_1',      # Common/Idiosyncratic
         'Factor_Layer_2',      # trend/volatility/liquidity/momentum/copula/etc
@@ -349,7 +350,8 @@ class BacktestSummaryReport:
         mode: str = None,
         assets: List[str] = None,
         factors: List[str] = None,
-        config_path: str = None
+        config_path: str = None,
+        backtest_time: str = None
     ) -> None:
         """
         Add a backtest result to the report.
@@ -362,6 +364,7 @@ class BacktestSummaryReport:
             assets: Asset list (if not using metadata)
             factors: Factor names list (if not using metadata)
             config_path: Configuration file path
+            backtest_time: Backtest execution timestamp (if not provided, uses current time)
         """
         # Build metadata if not provided
         if metadata is None:
@@ -379,12 +382,14 @@ class BacktestSummaryReport:
             include_total=True
         )
 
-        # Generate timestamp
+        # Generate timestamps
         generated_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        bt_time = backtest_time or generated_at
 
         # Create rows for each year
         for metrics in yearly_metrics:
             row = {
+                'Backtest_Time': bt_time,
                 'Dimension': metadata.dimension,
                 'Factor_Layer_1': metadata.factor_layer_1,
                 'Factor_Layer_2': metadata.factor_layer_2,
