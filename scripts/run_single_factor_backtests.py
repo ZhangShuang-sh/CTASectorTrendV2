@@ -139,7 +139,8 @@ class SimpleDataLoader:
         if end_date:
             asset_df = asset_df[asset_df.index <= pd.Timestamp(end_date)]
 
-        # Rename columns to standard format
+        # Add lowercase column aliases while keeping original column names
+        # This ensures compatibility with factors that expect either format
         col_map = {
             'S_DQ_CLOSE': 'close',
             'S_DQ_OPEN': 'open',
@@ -148,7 +149,9 @@ class SimpleDataLoader:
             'S_DQ_VOLUME': 'volume',
             'S_DQ_AMOUNT': 'amount',
         }
-        asset_df = asset_df.rename(columns=col_map)
+        for orig, alias in col_map.items():
+            if orig in asset_df.columns:
+                asset_df[alias] = asset_df[orig]  # Add alias, keep original
 
         return asset_df.sort_index()
 
@@ -285,8 +288,8 @@ class SimpleBacktester:
             # Calculate factor values
             signals = pd.Series(index=data.index, dtype=float)
 
-            # Rolling calculation
-            window = params.get('window', 60)
+            # Use factor's own window size for rolling calculation
+            window = getattr(factor, 'window', params.get('window', 60))
 
             for i in range(window, len(data)):
                 try:

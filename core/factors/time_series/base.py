@@ -90,11 +90,10 @@ class TimeSeriesFactorBase(FactorBase):
         if len(data) < self.window:
             return False
 
-        # 检查必需列
-        required_cols = ['S_DQ_CLOSE']
-        for col in required_cols:
-            if col not in data.columns:
-                return False
+        # 检查必需列 - 支持两种列名格式
+        has_close = 'S_DQ_CLOSE' in data.columns or 'close' in data.columns
+        if not has_close:
+            return False
 
         return True
 
